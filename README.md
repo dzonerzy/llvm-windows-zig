@@ -1,51 +1,33 @@
-# llvm-windows-zig
+# llvm-zig
 
-LLVM static libraries cross-compiled for Windows x86_64 using `zig cc`.
+LLVM static libraries cross-compiled for all platforms using `zig cc`.
 
-These libraries use the MinGW/libc++ ABI, making them compatible with Zig's linker (`linkLibC()` + `linkLibCpp()`). The official LLVM Windows release uses MSVC ABI which is incompatible with Zig.
+All libraries use libc++ ABI, making them compatible with Zig's linker. No system LLVM installation or platform-specific toolchains required.
 
-## Why?
+## Supported targets
 
-The official LLVM Windows release (`clang+llvm-*-x86_64-pc-windows-msvc.tar.xz`) is built with MSVC (`/MT`). The resulting `.lib` files:
-
-- Embed `/DEFAULTLIB:libcmt` directives that conflict with Zig's MinGW CRT
-- Use MSVC C++ ABI (`operator new`, `_Mtx_lock`, `__security_cookie`, etc.) which is incompatible with Zig's bundled libc++
-- Cannot be used with Zig's `linkLibC()` or `linkLibCpp()`
-
-This repo builds LLVM from source targeting MinGW via `zig cc`, producing `.a` files with libc++ ABI that work with Zig out of the box.
+| Target | Zig triple | Output |
+|---|---|---|
+| Linux x86_64 | `x86_64-linux-gnu` | `llvm-21.1.8-x86_64-linux.tar.xz` |
+| Linux aarch64 | `aarch64-linux-gnu` | `llvm-21.1.8-aarch64-linux.tar.xz` |
+| Windows x86_64 | `x86_64-windows-gnu` | `llvm-21.1.8-x86_64-windows.tar.xz` |
+| Windows aarch64 | `aarch64-windows-gnu` | `llvm-21.1.8-aarch64-windows.tar.xz` |
+| macOS aarch64 | `aarch64-macos` | `llvm-21.1.8-aarch64-macos.tar.xz` |
 
 ## Building
 
 Prerequisites: `zig`, `cmake`, `ninja`, `llvm-ar`, `llvm-ranlib`, `wget`
 
 ```bash
-./build.sh 21.1.8       # build LLVM 21.1.8
-./build.sh 21.1.8 16    # build with 16 jobs
-```
-
-Output: `llvm-21.1.8-mingw-x86_64-windows.tar.xz` containing `lib/*.a` and `include/` headers.
-
-## Usage with Zig
-
-The repackaged tarball from [zgram-llvm](https://github.com/dzonerzy/zgram-llvm) consumes these libraries. In `build.zig`:
-
-```zig
-exe.root_module.linkSystemLibrary("psapi", .{});
-exe.root_module.linkSystemLibrary("ole32", .{});
-exe.root_module.linkSystemLibrary("oleaut32", .{});
-exe.root_module.linkSystemLibrary("advapi32", .{});
-exe.root_module.linkSystemLibrary("shell32", .{});
-exe.root_module.linkSystemLibrary("shlwapi", .{});
-exe.root_module.linkSystemLibrary("uuid", .{});
-exe.root_module.linkSystemLibrary("user32", .{});
-exe.linkLibC();
-exe.linkLibCpp();
+./build.sh                          # build all targets
+./build.sh 21.1.8 16                # build all with 16 jobs
+./build.sh 21.1.8 16 x86_64-linux-gnu  # build single target
 ```
 
 ## Details
 
-- Compiler: `zig cc -target x86_64-windows-gnu`
+- Compiler: `zig cc -target <triple> -g0`
 - LLVM backends: X86 only
 - Optional deps disabled: zlib, zstd, terminfo, libxml2
-- Output format: MinGW `.a` archives (COFF objects, Itanium ABI)
-- C++ stdlib: libc++ (via zig cc)
+- Output format: `.a` archives with libc++ / Itanium ABI
+- No system dependencies beyond libc at runtime

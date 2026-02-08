@@ -1,6 +1,6 @@
 llvm-project/
 llvm-project-*.tar.xz
-build/
-llvm-*-mingw-*/
-wrappers/
+build-*/
+llvm-21.*/
+wrappers-*/
 *.tar.xz
