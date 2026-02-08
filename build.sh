@@ -22,11 +22,11 @@ echo "Using: $(zig version)"
 mkdir -p wrappers
 cat > wrappers/zig-cc << 'WRAPPER'
 #!/bin/bash
-zig cc -target x86_64-windows-gnu "$@"
+zig cc -target x86_64-windows-gnu -g0 "$@"
 WRAPPER
 cat > wrappers/zig-c++ << 'WRAPPER'
 #!/bin/bash
-zig c++ -target x86_64-windows-gnu "$@"
+zig c++ -target x86_64-windows-gnu -g0 "$@"
 WRAPPER
 chmod +x wrappers/zig-cc wrappers/zig-c++
 WRAPPER_DIR="$(pwd)/wrappers"
