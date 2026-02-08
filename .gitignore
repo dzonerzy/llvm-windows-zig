@@ -1,0 +1,6 @@
+llvm-project/
+llvm-project-*.tar.xz
+build/
+llvm-*-mingw-*/
+wrappers/
+*.tar.xz
